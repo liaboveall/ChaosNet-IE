@@ -1,158 +1,122 @@
-# 🔐 ChaosNet-IE - 基于神经网络优化混沌系统的图像加密器
+## ChaosNet-IE: Neural Network Optimized Chaotic Image Encryption
 
-> "Neural Network Enhanced Chaotic Image Encryption - 先进的混沌神经网络图像加密系统" 🔬
+[![English](https://img.shields.io/badge/Language-English-blue)](README.md) [![中文](https://img.shields.io/badge/语言-简体中文-red)](README_CN.md)
 
-![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.0+-green.svg)
-![NumPy](https://img.shields.io/badge/NumPy-Latest-orange.svg)
-![License](https://img.shields.io/badge/License-Academic-red.svg)
+> A high-security image encryption scheme combining an improved Lorenz chaotic system and neural network optimization.
 
-## 🎯 项目简介
+![Python](https://img.shields.io/badge/Python-3.7+-blue.svg) ![OpenCV](https://img.shields.io/badge/OpenCV-4.0+-green.svg) ![NumPy](https://img.shields.io/badge/NumPy-Latest-orange.svg) ![License](https://img.shields.io/badge/License-Academic-red.svg)
 
-**ChaosNet-IE** 是一个基于改进Lorenz混沌系统和神经网络的高安全性图像加密解决方案。本项目实现了论文 [《基于神经网络优化混沌系统的图像加密算法》](https://www.c-s-a.org.cn/1003-3254/7578.html) 中提出的创新算法。
+## Overview
+ChaosNet-IE implements the core ideas from the paper (CN) "基于神经网络优化混沌系统的图像加密算法": generate raw chaotic sequences from an improved Lorenz system, refine them via a BP neural network, then perform pixel permutation and diffusion for robust encryption.
 
-### ✨ 核心特性
+## Features
+- Neural network assisted enhancement of chaotic sequence quality
+- Improved Lorenz dynamics for stronger randomness
+- Two-stage processing: permutation + diffusion
+- Key derivation via SHA-384(image bytes) -> initial conditions (high key sensitivity)
+- Near-ideal entropy (~8.0) and low adjacent-pixel correlation after encryption
 
-- 🧠 **神经网络优化**: 使用BP神经网络训练和优化混沌序列
-- 🌀 **改进Lorenz系统**: 增强的混沌动力学系统，提供更好的随机性
-- 🔀 **双重处理**: 像素置乱 + 像素扩散的双重安全机制
-- 🔐 **密钥敏感性**: 基于图像内容的SHA-384哈希生成初始密钥
-- 📊 **高熵值**: 加密后图像接近理想的8.0熵值
-
-## 🏗️ 项目结构
-
+## Project Structure
 ```
 ChaosNet-IE/
-├── 📁 keys/              # 密钥文件存储目录
-│   ├── sequences.npz     # 神经网络训练后的混沌序列
-│   └── initial_values.txt # Lorenz系统初始值
-├── 📁 output/            # 加密/解密结果存储目录
-│   ├── encrypted.png     # 加密后的图像
-│   └── decrypted.png     # 解密后的图像
-├── 🐍 encrypt.py         # 图像加密主程序
-├── 🔓 decrypt.py         # 图像解密主程序
-├── 🎭 demo.py            # 一键演示脚本
-├── 🖼️ lena.png          # 测试图像
-└── 📖 README.md          # 项目说明文档
+├── keys/
+│   ├── sequences.npz          # Trained/optimized chaotic sequences
+│   └── initial_values.txt     # Initial Lorenz parameters
+├── output/
+│   ├── encrypted.png
+│   └── decrypted.png
+├── encrypt.py                 # Encryption script
+├── decrypt.py                 # Decryption script
+├── demo.py                    # One-click demo
+├── lena.png                   # Test image
+└── README.md / README_CN.md
 ```
 
-## 🚀 快速开始
-
-### 环境要求
-
+## Quick Start
+### Install Dependencies
 ```bash
 pip install numpy opencv-python
 ```
-
-### 🎭 一键演示 (推荐)
-
+### One-Click Demo
 ```bash
 python demo.py
 ```
+Performs: encryption → decryption → statistics output.
 
-这将自动完成加密→解密→效果分析的完整流程，并输出详细的统计信息。
-
-### 🔐 单独加密图像
-
+### Encrypt Only
 ```bash
 python encrypt.py
 ```
+Outputs: `output/encrypted.png`, `keys/sequences.npz`, `keys/initial_values.txt`
 
-**输出:**
-- `output/encrypted.png` - 加密后的图像
-- `keys/sequences.npz` - 混沌序列密钥
-- `keys/initial_values.txt` - 初始值记录
-
-### 🔓 单独解密图像
-
+### Decrypt Only
 ```bash
 python decrypt.py
 ```
+Outputs: `output/decrypted.png`
 
-**输出:**
-- `output/decrypted.png` - 解密后的图像
+## Algorithm Outline
+1. Improved Lorenz system generates chaotic sequences (with warm-up iterations)
+2. Sequence normalization to [0,1]
+3. BP neural network (≈10 hidden neurons) refines sequence quality
+4. Pixel permutation (index scrambling)
+5. Block-wise diffusion (XOR / additive mapping)
+6. Produce final cipher image
 
-## 🧮 算法原理
-
-### 1. 改进的Lorenz混沌系统
-
-基于经典Lorenz方程的改进版本：
-
+### Improved Lorenz Variant
 ```
 dx/dt = a(y - x)
-dy/dt = bx - xz + y  
-dz/dt = 200x² + 0.01·e^(xy) - cz
+dy/dt = bx - xz + y
+dz/dt = 200x^2 + 0.01·e^(xy) - cz
 ```
 
-### 2. 神经网络优化
-
-- **网络结构**: 输入层 → 隐藏层(10神经元) → 输出层
-- **激活函数**: tanh (隐藏层) + 线性 (输出层)
-- **训练目标**: 优化混沌序列的随机性和周期性
-
-### 3. 加密流程
-
+### Conceptual Flow
 ```mermaid
 graph LR
-    A[原始图像] --> B[生成初始值]
-    B --> C[Lorenz混沌系统]
-    C --> D[神经网络训练]
-    D --> E[像素置乱]
-    E --> F[像素扩散]
-    F --> G[加密图像]
+    A[Input Image] --> B[Key Derivation]
+    B --> C[Improved Lorenz]
+    C --> D[Neural Network]
+    D --> E[Permutation]
+    E --> F[Diffusion]
+    F --> G[Cipher Image]
 ```
 
-## 📊 安全性分析
+## Security Indicators (Example)
+| Metric | Plain | Encrypted | Note |
+|--------|-------|-----------|------|
+| Entropy | ~7.0 | ~8.0 | Near ideal randomness |
+| Adjacent Corr. | High | <0.001 | Spatial decorrelation |
+| Pixel Change Rate | 0% | >99% | Strong diffusion |
+| Histogram | Structured | Uniform | Resists frequency analysis |
 
-| 指标 | 原始图像 | 加密图像 | 说明 |
-|------|----------|----------|------|
-| 信息熵 | ~7.0 | ~8.0 | 接近理想值8.0 |
-| 相关性 | 高 | <0.001 | 相邻像素无关联 |
-| 像素变化率 | 0% | >99% | 几乎所有像素改变 |
-| 直方图 | 有规律 | 均匀分布 | 频率分析抗性强 |
+## Visualization
+| Plain | Encrypted | Decrypted |
+|-------|-----------|-----------|
+| ![Plain](lena.png) | ![Encrypted](images/encrypted.png) | ![Decrypted](images/decrypted.png) |
 
-## 🎨 效果展示
+## Key & Sequence Processing
+- SHA-384 over raw image bytes -> parse into initial conditions
+- 1000 warm-up iterations ensure chaotic regime
+- BP network (tanh hidden + linear output) fits/refines series
+- Derived indices drive permutation & diffusion vectors
 
-| 原始图像 | 加密图像 | 解密图像 |
-|----------|----------|----------|
-| ![原图](lena.png) | ![加密](images/encrypted.png) | ![解密](images/decrypted.png) |
+## Usage Notes
+1. Keep `keys/` files safe; they are required for decryption
+2. Current implementation targets grayscale images (RGB extension: per-channel processing)
+3. Changing the input image requires regenerating key materials
 
-## 🔬 技术细节
+## Reference (Chinese Paper)
+Paper: 基于神经网络优化混沌系统的图像加密算法 (计算机系统应用)
+Link: https://www.c-s-a.org.cn/1003-3254/7578.html
 
-### 密钥生成机制
-- 使用SHA-384对图像内容进行哈希
-- 结合预设基值生成Lorenz系统初始值
-- 确保密钥与图像内容强关联
+## Roadmap (Optional Ideas)
+- Color image direct support
+- GPU acceleration for sequence generation
+- Configurable network depth
+- Benchmark suite (speed / entropy / NPCR / UACI)
 
-### 混沌序列处理
-- 1000次预热迭代确保进入混沌状态
-- 序列归一化到[0,1]区间
-- 神经网络训练提升序列质量
-
-### 加密安全性
-- 像素位置置乱破坏空间相关性
-- 分块扩散增强抗差分攻击能力
-- 双重处理确保加密强度
-
-## ⚠️ 使用说明
-
-1. **确保测试图像存在**: 程序默认使用`lena.png`作为测试图像
-2. **保护密钥文件**: `keys/`目录下的文件是解密必需的
-3. **目录自动创建**: 程序会自动创建`output/`和`keys/`目录
-4. **灰度图像处理**: 当前版本主要针对灰度图像优化
-
-## 📖 参考文献
-
-本项目基于以下学术论文实现：
-- **论文标题**: 基于神经网络优化混沌系统的图像加密算法
-- **期刊**: 计算机系统应用
-- **链接**: https://www.c-s-a.org.cn/1003-3254/7578.html
-
-
-## 📄 许可证
-
-本项目仅供学术研究和教育使用。
+## License
+Academic / research only. Not intended for commercial deployment.
 
 ---
-
-*"在混沌的翅膀下，每一张图片都有其独特的密码诗篇"* 🦋✨
+For the Chinese version, click the 中文 badge at the top.
